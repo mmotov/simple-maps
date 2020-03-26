@@ -35,6 +35,19 @@ public class MapGraph {
     }
 
     public static void main(String[] args) {
+//        MapGraph theMap = new MapGraph();
+//        System.out.print("DONE. \nLoading the map...");
+//        GraphLoader.loadRoadMap("data/testdata/simpletest.map", theMap);
+//        System.out.println("DONE.");
+//
+//        GeographicPoint start = new GeographicPoint(1.0, 1.0);
+//        GeographicPoint end = new GeographicPoint(8.0, -1.0);
+//
+//        List<GeographicPoint> route = theMap.dijkstra(start,end);
+//        System.out.println(route);
+//        List<GeographicPoint> route2 = theMap.aStarSearch(start, end);
+//        System.out.println(route2);
+
         MapGraph theMap = new MapGraph();
         System.out.print("DONE. \nLoading the map...");
         GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
@@ -43,7 +56,7 @@ public class MapGraph {
         GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
         GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
 
-        List<GeographicPoint> route = theMap.dijkstra(start,end);
+//        List<GeographicPoint> route = theMap.dijkstra(start,end);
         List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
 
     }
@@ -202,13 +215,19 @@ public class MapGraph {
         adjListMap.get(start).setDistanceFromStart(0);
         queue.add(adjListMap.get(start));
 
+        int nodesVisited = 0;
+
         while (!queue.isEmpty()) {
             MapNode curr = queue.poll();
             nodeSearched.accept(curr.getLocation());
+
+            nodesVisited++;
+
             if (!visited.contains(curr)) {
                 visited.add(curr);
 
                 if (curr.equals(adjListMap.get(goal))) {
+                    System.out.println("Dijkstra queue deletions: " + nodesVisited);
                     return getPath(adjListMap.get(start), adjListMap.get(goal), parent);
                 }
 
@@ -264,16 +283,20 @@ public class MapGraph {
 
 
         startNode.setDistanceFromStart(0);
-        startNode.computeDistanceToGoal(goalNode);
+        startNode.computeDistanceToGoal(startNode);
         queue.add(startNode);
+
+        int nodesVisited = 0;
 
         while (!queue.isEmpty()) {
             MapNode curr = queue.poll();
             nodeSearched.accept(curr.getLocation());
             if (!visited.contains(curr)) {
                 visited.add(curr);
+                nodesVisited++;
 
                 if (curr.equals(adjListMap.get(goal))) {
+                    System.out.println("A-star queue deletions: " + nodesVisited);
                     return getPath(adjListMap.get(start), adjListMap.get(goal), parent);
                 }
 
@@ -281,10 +304,11 @@ public class MapGraph {
                 for (MapEdge edge : edges) {
                     MapNode neighbor = edge.getEnd();
                     if (!visited.contains(neighbor)) {
-                        neighbor.computeDistanceToGoal(goalNode);
+
                         double currWholeDistance = curr.getDistanceFromStart() + curr.getDistanceToGoal() + edge.getLength();
                         double neighborWholeDistance = neighbor.getDistanceFromStart() + neighbor.getDistanceToGoal();
                         if (currWholeDistance < neighborWholeDistance) {
+                            neighbor.computeDistanceToGoal(goalNode);
                             neighbor.setDistanceFromStart(curr.getDistanceFromStart() + edge.getLength());
                             parent.put(neighbor, curr);
                             queue.add(neighbor);
@@ -293,7 +317,6 @@ public class MapGraph {
                 }
             }
         }
-
         return null;
     }
 

@@ -54,6 +54,8 @@ public class MapNode implements Comparable {
 
     @Override
     public int compareTo(Object o) {
-        return Double.compare(distanceFromStart + distanceToGoal, ((MapNode)o).getDistanceFromStart());
+        double thisDistance = distanceFromStart + distanceToGoal;
+        double oDistance = ((MapNode)o).getDistanceFromStart() + ((MapNode)o).getDistanceToGoal();
+        return Double.compare(thisDistance, oDistance);
     }
 }
