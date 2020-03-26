@@ -99,9 +99,9 @@ public class GraphAdjList extends Graph {
         List<Integer> neighbors = getNeighbors(v);
         List<Integer> d2 = new ArrayList<>();
         for (Integer n : neighbors) {
-			List<Integer> currentNeighbors = getNeighbors(n);
-			d2.addAll(currentNeighbors);
-		}
+            List<Integer> currentNeighbors = getNeighbors(n);
+            d2.addAll(currentNeighbors);
+        }
         return d2;
     }
 
