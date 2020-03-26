@@ -56,12 +56,14 @@ public class MapGraph {
         GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
         GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
 
-        List<GeographicPoint> path = simpleTestMap.bfs(testStart, testEnd);
-        System.out.println(path);
+//        List<GeographicPoint> path = simpleTestMap.bfs(testStart, testEnd);
+//        System.out.println(path);
 //
-//		System.out.println("Test 1 using simpletest: Dijkstra should be 9 and AStar should be 5");
-//		List<GeographicPoint> testroute = simpleTestMap.dijkstra(testStart,testEnd);
-//		List<GeographicPoint> testroute2 = simpleTestMap.aStarSearch(testStart,testEnd);
+        System.out.println("Test 1 using simpletest: Dijkstra should be 9 and AStar should be 5");
+        List<GeographicPoint> testroute = simpleTestMap.dijkstra(testStart, testEnd);
+        System.out.println("Dijkstra: " + testroute.size());
+        System.out.println(testroute);
+		List<GeographicPoint> testroute2 = simpleTestMap.aStarSearch(testStart,testEnd);
 //
 //
 //		MapGraph testMap = new MapGraph();
@@ -196,43 +198,29 @@ public class MapGraph {
      */
     public List<GeographicPoint> bfs(GeographicPoint start,
                                      GeographicPoint goal, Consumer<GeographicPoint> nodeSearched) {
-        Queue<GeographicPoint> queue = new LinkedList<>();
-        HashSet<GeographicPoint> visited = new HashSet<>();
-        HashMap<GeographicPoint, GeographicPoint> parent = new HashMap<>();
+        Queue<MapNode> queue = new LinkedList<>();
+        HashSet<MapNode> visited = new HashSet<>();
+        HashMap<MapNode, MapNode> parent = new HashMap<>();
 
-        queue.add(start);
-        visited.add(start);
+        queue.add(adjListMap.get(start));
+        visited.add(adjListMap.get(start));
 
         while (!queue.isEmpty()) {
-            GeographicPoint curr = queue.poll();
-            nodeSearched.accept(curr);
-            if (curr.equals(goal)) {
-                return getPath(start, goal, parent);
+            MapNode curr = queue.poll();
+            if (curr.equals(adjListMap.get(goal))) {
+                return getPath(adjListMap.get(start), adjListMap.get(goal), parent);
             }
-            Set<MapEdge> edges = adjListMap.get(curr).getEdges();
+            Set<MapEdge> edges = curr.getEdges();
             for (MapEdge edge : edges) {
-                GeographicPoint neighborLocation = edge.getEnd().getLocation();
-                if (!visited.contains(neighborLocation)) {
-                    visited.add(neighborLocation);
-                    parent.put(neighborLocation, curr);
-                    queue.add(neighborLocation);
+                MapNode neighbor = edge.getEnd();
+                if (!visited.contains(neighbor)) {
+                    visited.add(neighbor);
+                    parent.put(neighbor, curr);
+                    queue.add(neighbor);
                 }
             }
         }
         return null;
-    }
-
-    private List<GeographicPoint> getPath(GeographicPoint start, GeographicPoint goal,
-                                          Map<GeographicPoint, GeographicPoint> parent) {
-        System.out.println("Building Path");
-        List<GeographicPoint> path = new LinkedList<>();
-        path.add(0, goal);
-        GeographicPoint curr = goal;
-        do {
-            path.add(0, parent.get(curr));
-            curr = parent.get(curr);
-        } while (!curr.equals(start));
-        return path;
     }
 
     /**
@@ -262,11 +250,37 @@ public class MapGraph {
      */
     public List<GeographicPoint> dijkstra(GeographicPoint start,
                                           GeographicPoint goal, Consumer<GeographicPoint> nodeSearched) {
-        // TODO: Implement this method in WEEK 4
+        HashSet<MapNode> visited = new HashSet<>();
+        HashMap<MapNode, MapNode> parent = new HashMap<>();
+        PriorityQueue<MapNode> queue = new PriorityQueue<>();
 
-        // Hook for visualization.  See writeup.
-        //nodeSearched.accept(next.getLocation());
+        adjListMap.get(start).setDistanceFromStart(0);
+        queue.add(adjListMap.get(start));
 
+        while (!queue.isEmpty()) {
+            MapNode curr = queue.poll();
+            nodeSearched.accept(curr.getLocation());
+            if (!visited.contains(curr)) {
+                visited.add(curr);
+
+                if (curr.equals(adjListMap.get(goal))) {
+                    return getPath(adjListMap.get(start), adjListMap.get(goal), parent);
+                }
+
+                Set<MapEdge> edges = curr.getEdges();
+                for (MapEdge edge : edges) {
+                    MapNode neighbor = edge.getEnd();
+                    if (!visited.contains(neighbor)) {
+
+                        if (curr.getDistanceFromStart() + edge.getLength() < neighbor.getDistanceFromStart()) {
+                            neighbor.setDistanceFromStart(curr.getDistanceFromStart() + edge.getLength());
+                            parent.put(neighbor, curr);
+                            queue.add(neighbor);
+                        }
+                    }
+                }
+            }
+        }
         return null;
     }
 
@@ -302,5 +316,18 @@ public class MapGraph {
         //nodeSearched.accept(next.getLocation());
 
         return null;
+    }
+
+    private List<GeographicPoint> getPath(MapNode start, MapNode goal,
+                                          Map<MapNode, MapNode> parent) {
+        System.out.println("Building Path");
+        List<GeographicPoint> path = new LinkedList<>();
+        path.add(0, goal.getLocation());
+        MapNode curr = goal;
+        do {
+            path.add(0, parent.get(curr).getLocation());
+            curr = parent.get(curr);
+        } while (!curr.equals(start));
+        return path;
     }
 }

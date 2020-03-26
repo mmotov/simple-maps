@@ -25,4 +25,8 @@ public class MapEdge {
     public MapNode getEnd() {
         return end;
     }
+
+    public double getLength() {
+        return length;
+    }
 }
