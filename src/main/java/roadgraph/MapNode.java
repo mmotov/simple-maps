@@ -13,10 +13,13 @@ public class MapNode implements Comparable {
 
     private double distanceFromStart;
 
+    private double distanceToGoal;
+
     public MapNode(GeographicPoint gp) {
         location = gp;
         edges = new HashSet<>();
         distanceFromStart = 1.0 / 0.0; // infinity
+        distanceToGoal = 0.0;
     }
 
     public void addEdge(MapNode to, String roadName, String roadType, double length) {
@@ -41,8 +44,16 @@ public class MapNode implements Comparable {
         return distanceFromStart;
     }
 
+    public double getDistanceToGoal() {
+        return distanceToGoal;
+    }
+
+    public void computeDistanceToGoal(MapNode goal) {
+        distanceToGoal = location.distance(goal.getLocation());
+    }
+
     @Override
     public int compareTo(Object o) {
-        return Double.compare(distanceFromStart, ((MapNode)o).getDistanceFromStart());
+        return Double.compare(distanceFromStart + distanceToGoal, ((MapNode)o).getDistanceFromStart());
     }
 }
